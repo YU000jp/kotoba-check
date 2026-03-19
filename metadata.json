@@ -1,0 +1,5 @@
+{
+  "name": "Copy of KotobaCheck",
+  "description": "AlexJSの日本語版コンセプト。文章に含まれる不適切な表現や、より配慮のある言い回しをAIが提案するインクルーシブ・ライティング・ツール。",
+  "requestFramePermissions": ["clipboard-read", "clipboard-write"]
+}
