@@ -9,6 +9,9 @@ const SAMPLE_TEXT = `当社の営業マンは非常に優秀です。
 また、受付の女の子も愛想が良くて評判です。
 外人の採用も積極的に行っています。
 会議ではめくら判を押すだけでなく、活発な議論を求めます。`;
+const analysisDisabledMessage = "この静的公開版では AI 分析を利用できません。ローカル実行または Node.js 対応環境にデプロイしてご利用ください。";
+const urlFetchDisabledMessage = "この静的公開版では URL からの記事取得を利用できません。";
+const isAnalysisAvailable = import.meta.env.VITE_ENABLE_ANALYSIS !== 'false';
 const isUrlFetchAvailable = import.meta.env.VITE_ENABLE_URL_FETCH !== 'false';
 
 function App() {
@@ -25,6 +28,10 @@ function App() {
   const handleAnalyze = useCallback(async (textToAnalyze?: string) => {
     const text = textToAnalyze || inputText;
     if (!text.trim() || isAnalyzing) return;
+    if (!isAnalysisAvailable) {
+      setErrorMessage(analysisDisabledMessage);
+      return;
+    }
 
     setIsAnalyzing(true);
     setHasAnalyzed(false);
@@ -45,7 +52,7 @@ function App() {
   const handleFetchAndAnalyze = async () => {
     if (!urlInput.trim() || isFetchingUrl) return;
     if (!isUrlFetchAvailable) {
-      setErrorMessage("公開版ではURL取得を利用できません。記事本文を貼り付けて分析してください。");
+      setErrorMessage(urlFetchDisabledMessage);
       return;
     }
 
@@ -125,6 +132,8 @@ function App() {
       setErrorMessage("クリップボードへのコピーに失敗しました。");
     }
   };
+  const isAnalyzeButtonDisabled = !isAnalysisAvailable || !inputText.trim() || isAnalyzing;
+  const analyzeButtonLabel = !isAnalysisAvailable ? '公開版では利用不可' : isAnalyzing ? '分析中...' : 'チェックする';
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
@@ -173,9 +182,10 @@ function App() {
             </button>
           </div>
         </div>
-        {!isUrlFetchAvailable && (
-          <div className="max-w-2xl mx-auto mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            GitHub Pages の公開版では URL からの記事取得は利用できません。分析したい本文を直接貼り付けてください。
+        {(!isAnalysisAvailable || !isUrlFetchAvailable) && (
+          <div className="max-w-2xl mx-auto mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 space-y-1">
+            {!isAnalysisAvailable && <p>{analysisDisabledMessage}</p>}
+            {!isUrlFetchAvailable && <p>{urlFetchDisabledMessage} 分析したい本文を直接貼り付けてください。</p>}
           </div>
         )}
 
@@ -331,26 +341,26 @@ function App() {
                 {mode === 'text' && (
                   <div className="absolute bottom-6 right-6">
                       <button
-                          onClick={() => handleAnalyze()}
-                          disabled={!inputText.trim() || isAnalyzing}
-                          className={`
-                              flex items-center gap-2 px-6 py-3 rounded-full font-bold shadow-lg transition-all transform active:scale-95
-                              ${!inputText.trim() 
-                                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
-                                  : isAnalyzing
-                                      ? 'bg-indigo-400 text-white cursor-wait'
+                           onClick={() => handleAnalyze()}
+                           disabled={isAnalyzeButtonDisabled}
+                           className={`
+                               flex items-center gap-2 px-6 py-3 rounded-full font-bold shadow-lg transition-all transform active:scale-95
+                               ${isAnalyzeButtonDisabled
+                                   ? 'bg-slate-200 text-slate-400 cursor-not-allowed' 
+                                   : isAnalyzing
+                                       ? 'bg-indigo-400 text-white cursor-wait'
                                       : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-indigo-500/30'
                               }
                           `}
                       >
-                          {isAnalyzing ? (
-                               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          ) : (
-                              <Play className="w-4 h-4 fill-current" />
-                          )}
-                          <span>{isAnalyzing ? '分析中...' : 'チェックする'}</span>
-                      </button>
-                  </div>
+                           {isAnalyzing ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                           ) : (
+                               <Play className="w-4 h-4 fill-current" />
+                           )}
+                           <span>{analyzeButtonLabel}</span>
+                       </button>
+                   </div>
                 )}
             </div>
           </div>

@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      VITE_ENABLE_ANALYSIS: 'false'
       VITE_ENABLE_URL_FETCH: 'false'
     steps:
       - name: Checkout
