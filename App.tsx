@@ -9,6 +9,7 @@ const SAMPLE_TEXT = `当社の営業マンは非常に優秀です。
 また、受付の女の子も愛想が良くて評判です。
 外人の採用も積極的に行っています。
 会議ではめくら判を押すだけでなく、活発な議論を求めます。`;
+const isUrlFetchAvailable = import.meta.env.VITE_ENABLE_URL_FETCH !== 'false';
 
 function App() {
   const [inputText, setInputText] = useState<string>('');
@@ -43,6 +44,10 @@ function App() {
 
   const handleFetchAndAnalyze = async () => {
     if (!urlInput.trim() || isFetchingUrl) return;
+    if (!isUrlFetchAvailable) {
+      setErrorMessage("公開版ではURL取得を利用できません。記事本文を貼り付けて分析してください。");
+      return;
+    }
 
     setIsFetchingUrl(true);
     setErrorMessage(null);
@@ -148,9 +153,19 @@ function App() {
               テキスト入力
             </button>
             <button
-              onClick={() => setMode('url')}
+              onClick={() => {
+                if (isUrlFetchAvailable) {
+                  setMode('url');
+                  setErrorMessage(null);
+                }
+              }}
+              disabled={!isUrlFetchAvailable}
               className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold transition-all ${
-                mode === 'url' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                !isUrlFetchAvailable
+                  ? 'text-slate-400 cursor-not-allowed'
+                  : mode === 'url'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               <Link className="w-4 h-4" />
@@ -158,6 +173,11 @@ function App() {
             </button>
           </div>
         </div>
+        {!isUrlFetchAvailable && (
+          <div className="max-w-2xl mx-auto mb-8 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            GitHub Pages の公開版では URL からの記事取得は利用できません。分析したい本文を直接貼り付けてください。
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-380px)] min-h-[600px]">
           {/* Left Column: Input */}
